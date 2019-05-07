@@ -950,11 +950,11 @@ class FlairEmbeddings(TokenEmbeddings):
             # fix start
             all_hidden_states_in_lm, hx_stacked, cx_stacked = self.lm.get_representation(sentences_padded, self.chars_per_chunk)
             self.call_count += 1
-            print(self.call_count)
-            if self.is_forward_lm:
-                print('forward_lm')
-            else:
-                print('backward_lm')
+            #print(self.call_count)
+            #if self.is_forward_lm:
+            #    print('forward_lm')
+            #else:
+            #    print('backward_lm')
             # fix end
 
             # take first or last hidden states from language model as word representation
@@ -982,8 +982,8 @@ class FlairEmbeddings(TokenEmbeddings):
                             ex_hx = hx_stacked[ex_offset, i, :]
                             ex_cx = cx_stacked[ex_offset, i, :]
 
-                            self.ex_hx_stacked.append(ex_hx.detach())
-                            self.ex_cx_stacked.append(ex_cx.detach())
+                            self.ex_hx_stacked.append(ex_hx.detach().cpu().numpy())
+                            self.ex_cx_stacked.append(ex_cx.detach().cpu().numpy())
                         elif token_label == 'B':
                             #NE前のスペースベクトルを抽出
                             if self.is_forward_lm:
@@ -993,8 +993,8 @@ class FlairEmbeddings(TokenEmbeddings):
                                 ex_hx = hx_stacked[ex_offset, i, :]
                                 ex_cx = cx_stacked[ex_offset, i, :]
 
-                                self.ex_hx_stacked.append(ex_hx.detach())
-                                self.ex_cx_stacked.append(ex_cx.detach())
+                                self.ex_hx_stacked.append(ex_hx.detach().cpu().numpy())
+                                self.ex_cx_stacked.append(ex_cx.detach().cpu().numpy())
                         elif token_label == 'E':
                             #NE後のスペースベクトルを抽出
                             if not self.is_forward_lm:
@@ -1004,8 +1004,8 @@ class FlairEmbeddings(TokenEmbeddings):
                                 ex_hx = hx_stacked[ex_offset, i, :]
                                 ex_cx = cx_stacked[ex_offset, i, :]
 
-                                self.ex_hx_stacked.append(ex_hx.detach())
-                                self.ex_cx_stacked.append(ex_cx.detach())
+                                self.ex_hx_stacked.append(ex_hx.detach().cpu().numpy())
+                                self.ex_cx_stacked.append(ex_cx.detach().cpu().numpy())
                         else:
                             pass
                     # fix end
@@ -1029,10 +1029,10 @@ class FlairEmbeddings(TokenEmbeddings):
             all_hidden_states_in_lm = None
 
         # fix start
-        if data_type == 'train':
+        if data_type == 'train' and self.call_count % 400 == 0:
             import pickle
             if self.is_forward_lm:
-                file_name = '/cl/work/shusuke-t/ds_ner/dic_learning/non_context/toy_conllform/forward_hxcx_stacked_'\
+                file_name = '/cl/work/shusuke-t/ds_ner/dic_learning/context_vec/hxcx_vec/numpy_forward_hxcx_stacked_'\
                             + str(self.call_count) + '.pkl'
                 f = open(file_name,'wb')
                 pickle.dump([self.ex_hx_stacked, self.ex_cx_stacked],f)
@@ -1041,7 +1041,7 @@ class FlairEmbeddings(TokenEmbeddings):
                 self.ex_cx_stacked = []
                 f.close
             else:
-                file_name = '/cl/work/shusuke-t/ds_ner/dic_learning/non_context/toy_conllform/backward_hxcx_stacked_'\
+                file_name = '/cl/work/shusuke-t/ds_ner/dic_learning/context_vec/hxcx_vec/numpy_backward_hxcx_stacked_'\
                             + str(self.call_count) + '.pkl'
                 f = open(file_name,'wb')
                 pickle.dump([self.ex_hx_stacked, self.ex_cx_stacked],f)
